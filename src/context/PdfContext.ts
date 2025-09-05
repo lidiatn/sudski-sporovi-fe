@@ -14,6 +14,11 @@ export interface PdfContextType {
   setSelectedAnalysisBox: (id: number | null) => void
   error: boolean
   setError: (val: boolean) => void;
+  retry: boolean
+  setRetry: (val: boolean) => void;
+  highlightEnabled: boolean
+  setHighlightEnabled: (val: boolean) => void;
+
 }
 
 export const PdfContext = createContext<PdfContextType | undefined>(undefined);

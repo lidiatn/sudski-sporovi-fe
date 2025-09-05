@@ -12,5 +12,5 @@ export type Propis = {
 
 export type OdgovorDto = {
   nepravilnosti?: Nepravilnost[];
-  clanci?: Propis[];
+  propisi?: Propis[];
 }

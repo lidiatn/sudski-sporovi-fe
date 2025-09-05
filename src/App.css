@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+@theme {
+  --breakpoint-md: 739px;
+}
+
 html, body, #root {
   margin: 0;
   padding: 0;
@@ -24,26 +28,14 @@ html, body, #root {
   will-change: filter;
   transition: filter 300ms;
 }
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
-}
 
 .card {
   padding: 2em;
 }
 
+
 .read-the-docs {
   color: #888;
-}
-
-.app-container {
-  height: 100vh;
-  width: 100vh;
-  display: flex;
-  flex-direction: column;
 }
 
 .gutter {

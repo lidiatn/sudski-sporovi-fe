@@ -3,27 +3,37 @@ import {Document, Page, pdfjs} from 'react-pdf'
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
 import {usePdfFile} from "../hooks/usePdfFile.ts";
-import jaroWinkler from "talisman/metrics/jaro-winkler";
+import {ENABLE_HIGHLIGHT_THRESHOLD} from "../constants.ts";
 pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 function PdfViewer() {
-  const { file, selectedText, setSelectedText, setSelectedAnalysisBox } = usePdfFile();
+  const { file, selectedText, setSelectedText, setSelectedAnalysisBox, highlightEnabled, setHighlightEnabled } = usePdfFile();
   const [numPages, setNumPages] = useState<number>();
-  const [containerSize, setContainerSize] = useState({ width: 800 });
+  const [containerSize, setContanerSize] = useState({ width: 800 });
   const containerRef = useRef<HTMLDivElement>(null);
 
   function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
     setNumPages(numPages);
   }
 
-
   useEffect(() => {
       highlightText();
   }, [selectedText, numPages]);
 
+  function getSimilarity(candidate: string, actual: string) {
+      const wordsCandidate = candidate.trim().split(/\s+/);
+      const actualWords = actual.trim().split(/\s+/);
+      const actualLength = actualWords.length;
+      let matches = 0;
 
-  function getSimilarity(a: string, b: string) {
-    return jaroWinkler(a, b);
+      for (let i = 0; i < actualLength; i++) {
+        const wordA = wordsCandidate[i];
+        const wordB = actualWords[i];
+        if (wordA && wordB && wordA === wordB) {
+          matches++;
+        }
+      }
+      return (matches / actualLength) * 100;
   }
 
   const highlightText = useCallback(() => {
@@ -48,23 +58,29 @@ function PdfViewer() {
 
     const highlightByFuzzyMatch = () => {
       resetHighlights(layers)
+      if(!highlightEnabled){
+        return;
+      }
       let fullText = '';
       const spanMap: { span: HTMLSpanElement; start: number; end: number }[] = [];
       layers.forEach((layer) => {
         const spans = Array.from(layer.querySelectorAll('span'));
         spans.forEach((span) => {
-          const text = span.textContent || '';
+          let text = span.textContent || '';
           const start = fullText.length;
           const end = start + text.length;
-          spanMap.push({ span, start, end });
+          if(text) {
+            text = text.trim()+ " ";
+          }
           fullText += text;
+          spanMap.push({ span, start, end });
+
         });
       });
 
       const windowSize = selectedText.length;
       const firstWord = selectedText.trim().split(/\s+/)[0].replace(/[.,:;!?()]/g, '');
-      const wordRegex = new RegExp(`\\b${firstWord}\\b`, 'gi');
-
+      const wordRegex = new RegExp(`(^|[^\\p{L}])(${firstWord})(?=[^\\p{L}]|$)`, 'giu');
       const matchCandidates: number[] = [];
       let match: RegExpExecArray | null;
 
@@ -72,13 +88,13 @@ function PdfViewer() {
         matchCandidates.push(match.index);
       }
 
-      let bestMatch = { index: -1, score: 0 };
+      let bestMatch = { index: -1, score: 0};
 
       for (const i of matchCandidates) {
         const window = fullText.slice(i, i + windowSize);
         const score = getSimilarity(window, selectedText);
         if (score > bestMatch.score) {
-          bestMatch = { index: i, score };
+          bestMatch = { index: i, score};
         }
       }
 
@@ -91,7 +107,6 @@ function PdfViewer() {
       const matchEnd = matchIndex + selectedText.length;
 
       let scrolled = false;
-
       spanMap.forEach(({ span, start, end }) => {
         const overlapStart = Math.max(start, matchIndex);
         const overlapEnd = Math.min(end, matchEnd);
@@ -104,7 +119,6 @@ function PdfViewer() {
           const before = spanText.slice(0, relStart);
           const match = spanText.slice(relStart, relEnd);
           const after = spanText.slice(relEnd);
-
           const highlightId = 'pdf-highlight';
           span.innerHTML = `${before}<mark id="${highlightId}" style="background: rgb(193, 199, 222, 1);">${match}</mark>${after}`;
           if (!scrolled) {
@@ -127,7 +141,8 @@ function PdfViewer() {
   useEffect(() => {
     const updateSize = () => {
       if (containerRef.current) {
-        setContainerSize({ width: containerRef.current.offsetWidth })
+        setContanerSize({ width: containerRef.current.offsetWidth })
+        setHighlightEnabled(containerRef.current.offsetWidth>ENABLE_HIGHLIGHT_THRESHOLD)
         setSelectedAnalysisBox(null);
         setSelectedText(null);
       }
@@ -137,10 +152,10 @@ function PdfViewer() {
     const resizeObserver = new ResizeObserver(() => updateSize());
     if (containerRef.current) resizeObserver.observe(containerRef.current);
     return () => resizeObserver.disconnect();
-  }, []);
+  }, [containerRef]);
 
   return (
-      <div ref={containerRef} className="h-full w-full overflow-y-auto px-2">
+      <div ref={containerRef} className="h-full w-full overflow-y-auto px-0 md:px-2">
         {file && (
             <Document
                 file={file}

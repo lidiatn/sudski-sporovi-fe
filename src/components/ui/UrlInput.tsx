@@ -11,8 +11,8 @@ const UrlInput = ({ value, onChange, className } : UrlInputPros) => (
         value={value}
         onChange={onChange}
         className={`bg-gray-50 border border-black-200 text-black-400
-                   text-sm rounded-lg focus:ring-blue-900 focus:border-blue-500
-                   block w-full p-2.5 bg-[var(--button-base)] dark:border-black
+                   text-xs rounded-lg focus:ring-blue-900 focus:border-blue-500
+                   block pl-3 bg-[var(--button-base)] dark:border-black
                    dark:placeholder-gray-30 dark:text-black-400
                    dark:focus:ring-blue-500 dark:focus:border-blue-500 ${className || ""}`}
     />

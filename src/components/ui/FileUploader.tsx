@@ -7,7 +7,7 @@ const FileUploader = ({ onChange }: FileUploaderProps) =>
     <>
       <label htmlFor="fileInput"
           className="cursor-pointer inline-block bg-[var(--button-base)] rounded-lg
-                     px-4 py-1 text-base text-black font-['Arial', 'sans-serif']
+                     px-4 py-1 text-sm lg:text-base text-black font-['Arial', 'sans-serif']
                      hover:bg-[var(--button-hover)] transition-colors
                      border-white-100
                      border-1"

@@ -9,6 +9,8 @@ export const PdfFileProvider = ({ children }: { children: ReactNode }) => {
   const [selectedText, setSelectedText] = useState<string | null>(null);
   const [selectedAnalysisBox, setSelectedAnalysisBox] = useState<number | null>(null);
   const [error, setError] = useState<boolean>(false);
+  const [retry, setRetry] = useState<boolean>(false);
+  const [highlightEnabled, setHighlightEnabled] = useState<boolean>(false);
 
   const value: PdfContextType = {
     file,
@@ -22,7 +24,11 @@ export const PdfFileProvider = ({ children }: { children: ReactNode }) => {
     selectedAnalysisBox,
     setSelectedAnalysisBox,
     error,
-    setError
+    setError,
+    retry,
+    setRetry,
+    highlightEnabled,
+    setHighlightEnabled
   };
 
   return <PdfContext.Provider value={value}> {children} </PdfContext.Provider>;
